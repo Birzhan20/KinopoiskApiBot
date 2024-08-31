@@ -30,15 +30,15 @@ def initialize_database():
 initialize_database()
 
 
-def save_data(str):
-    if str.startswith('/'):
-        logger.info(f"Обрабатывается команда (HISTORY)")
+def save_data(message: Message):
+    if message.text.startswith('/'):
+        logger.info(f"Обрабатывается команда: {message.text}")
         try:
-            user, created = User.get_or_create(username=str.from_user.username)
+            user, created = User.get_or_create(username=message.from_user.username)
             History.create(
                 user=user,
-                content=str
+                content=message.text
             )
             logger.info("Запись успешно сохранена.")
         except Exception as e:
-            logger.info(f"Ошибка при сохранении данных: {e}")
+            logger.error(f"Ошибка при сохранении данных: {e}")
