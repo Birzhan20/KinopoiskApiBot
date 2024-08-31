@@ -1,3 +1,10 @@
-from . import start
-from . import help
-from . import echo
+from . import (
+    start,
+    high,
+    help,
+    low,
+    custom,
+    history,
+    echo
+)
+
