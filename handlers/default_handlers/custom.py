@@ -4,15 +4,22 @@ from telebot.types import Message
 import os
 from loguru import logger
 
+from database.data import save_data
 from loader import bot
 
 logger.add("bot_custom.log", rotation="1 MB", compression="zip")
 
-user_data = {}
+user_data: dict[int, dict[str, str]] = (
+    {}
+)  # Словарь для хранения данных пользователя
 
 
 @bot.message_handler(commands=["custom"])
-def custom(message: Message):
+def custom(message: Message) -> None:
+    """
+    Обрабатывает команду '/custom', запрашивает диапазон по годам и страну у пользователя.
+    """
+    save_data(text=message.text, username=message.from_user.username)
     user_id = message.from_user.id
     user_data[user_id] = {}
 
@@ -20,7 +27,9 @@ def custom(message: Message):
 
     bot.reply_to(message, "Выберите диапазон по годам.")
 
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    keyboard = types.ReplyKeyboardMarkup(
+        resize_keyboard=True, one_time_keyboard=True
+    )
     button1 = types.KeyboardButton("2000")
     button2 = types.KeyboardButton("2010")
     keyboard.add(button1, button2)
@@ -29,11 +38,16 @@ def custom(message: Message):
     bot.register_next_step_handler(message, handle_year_to)
 
 
-def handle_year_to(message: Message):
+def handle_year_to(message: Message) -> None:
+    """
+    Обрабатывает год 'от', запрашивает год 'до' у пользователя.
+    """
     user_id = message.from_user.id
-    user_data[user_id]["to_year"] = message.text
+    user_data[user_id]["from_year"] = message.text
 
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    keyboard = types.ReplyKeyboardMarkup(
+        resize_keyboard=True, one_time_keyboard=True
+    )
     button1 = types.KeyboardButton("2015")
     button2 = types.KeyboardButton("2024")
     keyboard.add(button1, button2)
@@ -42,11 +56,16 @@ def handle_year_to(message: Message):
     bot.register_next_step_handler(message, handle_country)
 
 
-def handle_country(message: Message):
+def handle_country(message: Message) -> None:
+    """
+    Обрабатывает страну, запрашивает выбор страны у пользователя.
+    """
     user_id = message.from_user.id
-    user_data[user_id]["country"] = message.text
+    user_data[user_id]["to_year"] = message.text
 
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    keyboard = types.ReplyKeyboardMarkup(
+        resize_keyboard=True, one_time_keyboard=True
+    )
     button1 = types.KeyboardButton("russia")
     button2 = types.KeyboardButton("usa")
     button3 = types.KeyboardButton("kazakhstan")
@@ -57,15 +76,18 @@ def handle_country(message: Message):
     bot.register_next_step_handler(message, handle_data)
 
 
-def handle_data(message: Message):
+def handle_data(message: Message) -> None:
+    """
+    Обрабатывает данные пользователя, делает запрос к API и отправляет результаты пользователю.
+    """
     user_id = message.from_user.id
 
     from_year = user_data[user_id].get("from_year")
     to_year = user_data[user_id].get("to_year")
     country = user_data[user_id].get("country")
 
-    kinopoisk_api_key = os.getenv('KINOPOISK_API_KEY')
-    url = f'https://api.kinopoisk.dev/v1.4/movie?premiere.{country}={from_year}-{to_year}&token={kinopoisk_api_key}'
+    kinopoisk_api_key = os.getenv("KINOPOISK_API_KEY")
+    url = f"https://api.kinopoisk.dev/v1.4/movie?premiere.{country}={from_year}-{to_year}&token={kinopoisk_api_key}"
 
     try:
         res = requests.get(url)
@@ -73,20 +95,22 @@ def handle_data(message: Message):
             data = res.json()
             if "docs" in data and data["docs"]:
                 films = data["docs"]
-                reply = 'Фильмы за выбранный период и страну:\n'
+                reply = "Фильмы за выбранный период и страну:\n"
                 for film in films:
                     reply += f"- {film['name']} ({film['year']})\n"
                 bot.reply_to(message, reply)
                 logger.info("Успешно получены данные о фильмах.")
             else:
-                bot.reply_to(message, 'Не удалось найти данные.')
-                logger.warning('Данные не найдены.')
+                bot.reply_to(message, "Не удалось найти данные.")
+                logger.warning("Данные не найдены.")
         else:
-            logger.error(f"Ошибка запроса: статус-код {res.status_code}, ответ: {res.text}")
-            bot.reply_to(message, f'Ошибка. Статус-код: {res.status_code}.')
+            logger.error(
+                f"Ошибка запроса: статус-код {res.status_code}, ответ: {res.text}"
+            )
+            bot.reply_to(message, f"Ошибка. Статус-код: {res.status_code}.")
     except requests.exceptions.RequestException as e:
-        bot.reply_to(message, 'Ошибка при запросе данных.')
+        bot.reply_to(message, "Ошибка при запросе данных.")
         logger.error(f"Ошибка при запросе данных: {e}")
     except Exception as e:
-        bot.reply_to(message, 'Произошла непредвиденная ошибка.')
+        bot.reply_to(message, "Произошла непредвиденная ошибка.")
         logger.exception(f"Непредвиденная ошибка: {e}")

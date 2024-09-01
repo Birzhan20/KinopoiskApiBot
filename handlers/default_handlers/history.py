@@ -1,25 +1,42 @@
 from loguru import logger
-from database.data import History
+from database.data import History, save_data
 from loader import bot
 from telebot.types import Message
-from database.data import User
 
 logger.add("bot_history.log", rotation="1 MB", compression="zip")
 
 
 @bot.message_handler(commands=["history"])
-def history(request):
+def history(message: Message) -> None:
+    """
+    Обрабатывает команду '/history' и отправляет пользователю последние 10 запросов из истории.
+
+    Args:
+        message (Message): Сообщение от пользователя с командой '/history'.
+    """
+    save_data(text="/history", username=message.from_user.username)
     logger.info(f"Обработка '/history'")
+
     try:
-        recent_history = History.select().order_by(History.date.desc()).limit(10)
+        # Получение последних 10 записей из истории
+        recent_history = (
+            History.select().order_by(History.date.desc()).limit(10)
+        )
         history_entries = [
-            f"User: {entry.user.username}, Date: {entry.date}, Content: {entry.content}"
+            (
+                f"Пользователь: {entry.user.username}, "
+                f"Дата: {entry.date.strftime('%Y-%m-%d %H:%M:%S')}, "
+                f"Запрос: {entry.content}"
+            )
             for entry in recent_history
         ]
         result = "\n".join(history_entries)
 
-        bot.send_message(request.from_user.id, result)
+        # Отправка истории пользователю
+        bot.send_message(message.from_user.id, result)
 
     except Exception as e:
         logger.error(f"Ошибка при обработке команды '/history': {e}")
-        bot.send_message(request.from_user.id, "Произошла ошибка при получении истории.")
+        bot.send_message(
+            message.from_user.id, "Произошла ошибка при получении истории."
+        )

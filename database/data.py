@@ -1,9 +1,8 @@
+from datetime import datetime
 from peewee import *
-from telebot.types import Message
-from loader import bot
 from loguru import logger
 
-db = SqliteDatabase('database.db')
+db = SqliteDatabase("database.db")
 
 
 class BaseModel(Model):
@@ -12,17 +11,24 @@ class BaseModel(Model):
 
 
 class User(BaseModel):
-    username = CharField()
-    created_at = DateTimeField(constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')])
+    username: str = CharField()  # Имя пользователя
+    created_at: datetime = DateTimeField(
+        constraints=[SQL("DEFAULT CURRENT_TIMESTAMP")]
+    )  # Время создания пользователя
 
 
 class History(BaseModel):
-    user = ForeignKeyField(User)
-    date = DateTimeField(constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')])
-    content = TextField()
+    user: ForeignKeyField = ForeignKeyField(
+        User
+    )  # Внешний ключ на модель User
+    date: datetime = DateTimeField(
+        constraints=[SQL("DEFAULT CURRENT_TIMESTAMP")]
+    )  # Время записи
+    content: str = TextField()  # Содержание записи
 
 
-def initialize_database():
+def initialize_database() -> None:
+    """Создает подключение к базе данных и таблицы, если они не существуют."""
     db.connect()
     db.create_tables([User, History], safe=True)
 
@@ -30,15 +36,12 @@ def initialize_database():
 initialize_database()
 
 
-def save_data(message: Message):
-    if message.text.startswith('/'):
-        logger.info(f"Обрабатывается команда: {message.text}")
-        try:
-            user, created = User.get_or_create(username=message.from_user.username)
-            History.create(
-                user=user,
-                content=message.text
-            )
-            logger.info("Запись успешно сохранена.")
-        except Exception as e:
-            logger.error(f"Ошибка при сохранении данных: {e}")
+def save_data(text: str, username: str) -> None:
+    """Сохраняет данные о запросе пользователя в базе данных."""
+    try:
+        logger.info("Запись в базу")
+        user, created = User.get_or_create(username=username)
+        History.create(user=user, date=datetime.now(), content=text)
+        logger.info("Запись успешно сохранена.")
+    except Exception as e:
+        logger.error(f"Ошибка при сохранении данных: {e}")

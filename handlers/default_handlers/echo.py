@@ -1,7 +1,6 @@
 from telebot.types import Message
 from loguru import logger
 from loader import bot
-from database.data import save_data
 
 from .high import high
 from .custom import custom
@@ -14,39 +13,41 @@ logger.add("bot_echo.log", rotation="1 MB", compression="zip")
 
 
 @bot.message_handler(state=None)
-def bot_echo(message: Message):
-
-    if message.text == '/high':
-        logger.info(f"Выполнение '/high'")
-        save_data(message.text)
+def bot_echo(message: Message) -> None:
+    """
+    Обрабатывает сообщения и перенаправляет их к соответствующим обработчикам команд.
+    """
+    if message.text == "/high":
+        logger.info("Выполнение '/high'")
         bot.register_next_step_handler(message, high)
 
-    elif message.text == '/low':
+    elif message.text == "/low":
+        logger.info("Выполнение '/low'")
         bot.register_next_step_handler(message, low)
-        logger.info(f"Выполнение '/low'")
 
-    elif message.text == '/custom':
+    elif message.text == "/custom":
+        logger.info("Выполнение '/custom'")
         bot.register_next_step_handler(message, custom)
-        logger.info(f"Выполнение '/custom'")
 
-    elif message.text == '/help':
+    elif message.text == "/help":
+        logger.info("Выполнение '/help'")
         bot.register_next_step_handler(message, help)
-        logger.info(f"Выполнение '/help'")
 
-    elif message.text == '/history':
+    elif message.text == "/history":
+        logger.info("Выполнение '/history'")
         bot.register_next_step_handler(message, history)
-        logger.info(f"Выполнение '/history'")
 
-    elif message.text == '/start':
+    elif message.text == "/start":
+        logger.info("Выполнение '/start'")
         bot.register_next_step_handler(message, start)
-        logger.info(f"Выполнение '/start'")
 
-    elif message.text == '/Hello world!' or message.text == 'Привет':
+    elif message.text == "/hello-world" or message.text == "Привет":
         bot.reply_to(message, "You are welcome!")
-        logger.info(f"Greetings")
+        logger.info("Greetings")
 
     else:
         bot.reply_to(
-            message, "Эхо без состояния или фильтра.\n" f"Сообщение: {message.text}"
+            message,
+            "Эхо без состояния или фильтра.\nСообщение: {message.text}",
         )
-        logger.info(f"Empty echo")
+        logger.info("Empty echo")
