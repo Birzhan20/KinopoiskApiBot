@@ -1,5 +1,6 @@
 from loguru import logger
 from loader import bot
+import handlers
 from utils.set_bot_commands import set_default_commands
 
 logger.add("bot.log", rotation="10 MB", compression="zip")
