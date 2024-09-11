@@ -1,7 +1,7 @@
 from telebot.types import Message
 from loguru import logger
 from config_data.config import DEFAULT_COMMANDS
-from database.data import save_data
+from utils.history_utils import save_data
 from loader import bot
 
 logger.add("bot_help.log", rotation="10 MB", compression="zip")
@@ -15,17 +15,13 @@ def help(message: Message) -> None:
     Args:
         message (Message): Сообщение от пользователя с командой '/help'.
     """
-    # Сохраняет данные о запросе в базе
     save_data(text=message.text, username=message.from_user.username)
 
-    # Логгирует обработку команды
     logger.info("Обработка '/help'")
 
-    # Формирует текст с описанием команд
     text = [
         f"/{command} - {description}"
         for command, description in DEFAULT_COMMANDS
     ]
 
-    # Отправляет пользователю ответ с перечнем команд
     bot.reply_to(message, "\n".join(text))
