@@ -19,9 +19,10 @@ def history(message: Message) -> None:
     logger.info(f"Обработка '/history'")
 
     try:
+        user_id = message.from_user.id
         # Получение последних 10 записей из истории
         recent_history = (
-            History.select().order_by(History.date.desc()).limit(10)
+            History.select().where(History.user_id == user_id).order_by(History.date.desc()).limit(10)
         )
         history_entries = [
             (

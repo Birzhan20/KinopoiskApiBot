@@ -4,6 +4,8 @@ from telebot.types import Message
 import os
 from loguru import logger
 from utils.custom_utils import handle_data, handle_country, handle_year_to
+from loader import UserStates
+from telebot.storage import StateMemoryStorage
 
 from utils.history_utils import save_data
 from loader import bot
@@ -24,6 +26,8 @@ def custom(message: Message) -> None:
     user_id = message.from_user.id
     user_data[user_id] = {}
 
+    bot.delete_state(user_id, message.chat.id)
+
     logger.info(f"Получена команда '/custom' от пользователя {user_id}")
 
     bot.reply_to(message, "Выберите диапазон по годам.")
@@ -36,4 +40,4 @@ def custom(message: Message) -> None:
     keyboard.add(button1, button2)
 
     bot.send_message(message.chat.id, "От:", reply_markup=keyboard)
-    bot.register_next_step_handler(message, handle_year_to)
+    bot.set_state(user_id, UserStates.waiting_for_from_year, message.chat.id)
