@@ -1,12 +1,10 @@
-import requests
 from telebot import types
 from telebot.types import Message
-import os
 from loguru import logger
 
 from utils.history_utils import save_data
 from loader import bot
-from utils.low_utils import get_min_genre
+from states import user_states, STATES
 
 logger.add("bot_low.log", rotation="1 MB", compression="zip")
 
@@ -26,6 +24,11 @@ def low(message: Message) -> None:
         f"Получена команда '/low' от пользователя {message.from_user.id}"
     )
 
+    if message.from_user.id in user_states:
+        user_states.pop(message.from_user.id)
+
+    user_states[message.from_user.id] = STATES['WAITING_LOW_GENRE']
+
     # Создание клавиатуры для выбора жанра
     keyboard = types.ReplyKeyboardMarkup(
         resize_keyboard=True, one_time_keyboard=True
@@ -37,6 +40,6 @@ def low(message: Message) -> None:
     keyboard.add(button1, button2, button3, button4)
 
     bot.send_message(message.chat.id, "Выберите жанр:", reply_markup=keyboard)
-    bot.register_next_step_handler(message, get_min_genre)
+
 
 

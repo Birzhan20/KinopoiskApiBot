@@ -3,8 +3,10 @@ from telebot.types import Message
 import os
 from loguru import logger
 from loader import bot
+from states import user_states, STATES
 
 
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == STATES['WAITING_HIGH_GENRE'])
 def get_max_genre(message: Message) -> None:
     """
     Обрабатывает выбранный пользователем жанр и запрашивает данные о фильмах с максимальным рейтингом в указанном жанре.
@@ -12,7 +14,6 @@ def get_max_genre(message: Message) -> None:
     Args:
         message (Message): Сообщение от пользователя с выбранным жанром.
     """
-    # Получает API ключ и жанр
     kinopoisk_api_key = os.getenv("KINOPOISK_API_KEY")
     genre = message.text
     logger.info(f"Запуск запроса по жанру {genre}.")
@@ -46,3 +47,5 @@ def get_max_genre(message: Message) -> None:
     except Exception as e:
         bot.reply_to(message, "Произошла непредвиденная ошибка.")
         logger.exception(f"Непредвиденная ошибка: {e}")
+
+    user_states.pop(message.from_user.id, None)

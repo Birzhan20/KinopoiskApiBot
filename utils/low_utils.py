@@ -2,10 +2,11 @@ import requests
 from telebot.types import Message
 import os
 from loguru import logger
-
+from states import user_states, STATES
 from loader import bot
 
 
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == STATES['WAITING_LOW_GENRE'])
 def get_min_genre(message: Message) -> None:
     """
     Обрабатывает выбранный жанр и запрашивает фильмы с минимальным рейтингом в этом жанре.
@@ -44,3 +45,5 @@ def get_min_genre(message: Message) -> None:
     except Exception as e:
         bot.reply_to(message, "Произошла непредвиденная ошибка.")
         logger.exception(f"Непредвиденная ошибка: {e}")
+
+    user_states.pop(message.from_user.id, None)

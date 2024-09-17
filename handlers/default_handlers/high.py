@@ -6,6 +6,7 @@ from loguru import logger
 from utils.history_utils import save_data
 from loader import bot
 from utils.high_utils import get_max_genre
+from states import user_states, STATES
 
 logger.add("bot_high.log", rotation="1 MB", compression="zip")
 
@@ -26,6 +27,11 @@ def high(message: Message) -> None:
         f"Получена команда '/high' от пользователя {message.from_user.id}"
     )
 
+    if message.from_user.id in user_states:
+        user_states.pop(message.from_user.id)
+
+    user_states[message.from_user.id] = STATES['WAITING_HIGH_GENRE']
+
     # Создает клавиатуру с жанрами
     keyboard = types.ReplyKeyboardMarkup(
         resize_keyboard=True, one_time_keyboard=True
@@ -38,6 +44,3 @@ def high(message: Message) -> None:
 
     # Отправляет сообщение пользователю с запросом на выбор жанра
     bot.send_message(message.chat.id, "Выберите жанр:", reply_markup=keyboard)
-
-    # Регистрирует обработчик следующего шага
-    bot.register_next_step_handler(message, get_max_genre)

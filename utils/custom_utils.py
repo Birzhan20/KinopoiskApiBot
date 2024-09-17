@@ -4,21 +4,47 @@ from telebot.types import Message
 import os
 from loguru import logger
 from loader import UserStates
-
+from states import user_states, STATES
 from loader import bot
 
 user_data: dict[int, dict[str, str]] = (
     {}
-)
+)  # Словарь для хранения данных пользователя
 
 
-@bot.message_handler(state=UserStates.waiting_for_from_year)
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == STATES['WAITING_CUSTOM_GENRE'])
+def handle_year_to(message: Message) -> None:
+    user_id = message.from_user.id
+    user_data[user_id] = {}
+
+    if message.from_user.id in user_states:
+        user_states.pop(message.from_user.id)
+
+    user_states[message.from_user.id] = STATES['WAITING_CUSTOM_GENRE1']
+
+    keyboard = types.ReplyKeyboardMarkup(
+        resize_keyboard=True, one_time_keyboard=True
+    )
+    button1 = types.KeyboardButton("2000")
+    button2 = types.KeyboardButton("2010")
+    keyboard.add(button1, button2)
+
+    bot.send_message(message.chat.id, "От:", reply_markup=keyboard)
+
+
+
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == STATES['WAITING_CUSTOM_GENRE1'])
 def handle_year_to(message: Message) -> None:
     """
     Обрабатывает год 'от', запрашивает год 'до' у пользователя.
     """
     user_id = message.from_user.id
     user_data[user_id]["from_year"] = message.text
+
+    if message.from_user.id in user_states:
+        user_states.pop(message.from_user.id)
+
+    user_states[message.from_user.id] = STATES['WAITING_CUSTOM_GENRE2']
 
     keyboard = types.ReplyKeyboardMarkup(
         resize_keyboard=True, one_time_keyboard=True
@@ -28,16 +54,21 @@ def handle_year_to(message: Message) -> None:
     keyboard.add(button1, button2)
 
     bot.send_message(message.chat.id, "До:", reply_markup=keyboard)
-    bot.set_state(user_id, UserStates.waiting_for_to_year, message.chat.id)
 
 
-@bot.message_handler(state=UserStates.waiting_for_to_year)
+
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == STATES['WAITING_CUSTOM_GENRE2'])
 def handle_country(message: Message) -> None:
     """
     Обрабатывает страну, запрашивает выбор страны у пользователя.
     """
     user_id = message.from_user.id
     user_data[user_id]["to_year"] = message.text
+
+    if message.from_user.id in user_states:
+        user_states.pop(message.from_user.id)
+
+    user_states[message.from_user.id] = STATES['WAITING_CUSTOM_GENRE3']
 
     keyboard = types.ReplyKeyboardMarkup(
         resize_keyboard=True, one_time_keyboard=True
@@ -49,10 +80,10 @@ def handle_country(message: Message) -> None:
     keyboard.add(button1, button2, button3, button4)
 
     bot.send_message(message.chat.id, "Страна:", reply_markup=keyboard)
-    bot.set_state(user_id, UserStates.waiting_for_country, message.chat.id)
 
 
-@bot.message_handler(state=UserStates.waiting_for_country)
+
+@bot.message_handler(func=lambda message: user_states.get(message.from_user.id) == STATES['WAITING_CUSTOM_GENRE3'])
 def handle_data(message: Message) -> None:
     """
     Обрабатывает данные пользователя, делает запрос к API и отправляет результаты пользователю.
@@ -91,4 +122,5 @@ def handle_data(message: Message) -> None:
     except Exception as e:
         bot.reply_to(message, "Произошла непредвиденная ошибка.")
         logger.exception(f"Непредвиденная ошибка: {e}")
-    bot.delete_state(user_id, message.chat.id)
+
+    user_states.pop(message.from_user.id, None)
