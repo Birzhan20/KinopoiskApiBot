@@ -1,6 +1,6 @@
 from datetime import datetime
 from loguru import logger
-from database.data import User, History
+from .data import History, User
 
 
 def save_data(text: str, username: str) -> None:

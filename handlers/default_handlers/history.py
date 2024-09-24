@@ -1,6 +1,6 @@
 from loguru import logger
 from database.data import History
-from utils.history_utils import save_data
+from database.save_data import save_data
 from loader import bot
 from telebot.types import Message
 

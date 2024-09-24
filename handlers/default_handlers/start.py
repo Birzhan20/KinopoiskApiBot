@@ -1,7 +1,7 @@
 from telebot.types import Message
 from loguru import logger
 
-from utils.history_utils import save_data
+from database.save_data import save_data
 from loader import bot
 
 logger.add("bot_start.log", rotation="10 MB", compression="zip")
