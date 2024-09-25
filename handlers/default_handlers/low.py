@@ -5,14 +5,10 @@ from telebot.types import Message
 from loguru import logger
 from database.save_data import save_data
 from loader import bot
-from telebot.states import State, StatesGroup
 from telebot import custom_filters
+from states.state_low import LowGenreStates
 
 logger.add("bot_low.log", rotation="1 MB", compression="zip")
-
-
-class LowGenreStates(StatesGroup):
-    low_genre = State()
 
 
 @bot.message_handler(commands=["low"])

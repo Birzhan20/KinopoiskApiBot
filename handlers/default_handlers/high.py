@@ -4,16 +4,11 @@ import os
 from loguru import logger
 from database.save_data import save_data
 from loader import bot
-from telebot.states import State, StatesGroup
 from telebot import custom_filters
+from states.state_high import HighGenreStates
 
 
 logger.add("bot_high.log", rotation="1 MB", compression="zip")
-
-
-class HighGenreStates(StatesGroup):
-    high_genre = State()
-
 
 
 @bot.message_handler(commands=["high"])

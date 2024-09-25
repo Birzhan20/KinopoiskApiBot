@@ -1,6 +1,5 @@
 from telebot import TeleBot
 from telebot.storage import StateMemoryStorage
-from telebot.handler_backends import State, StatesGroup
 from config_data import config
 
 

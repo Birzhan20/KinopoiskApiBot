@@ -6,20 +6,10 @@ from loguru import logger
 from loader import bot
 from database.save_data import save_data
 from telebot import custom_filters
-from telebot.states import State, StatesGroup
-from telebot.storage import StateMemoryStorage
+from states.state_custom import CustomGenreStates
 
 # Логирование
 logger.add("bot_custom.log", rotation="1 MB", compression="zip")
-
-# Инициализация хранилища состояний
-state_storage = StateMemoryStorage()
-
-# Определяем группы состояний для пользователя
-class CustomGenreStates(StatesGroup):
-    year_from = State()  # Состояние для года "от"
-    year_to = State()  # Состояние для года "до"
-    country = State()  # Состояние для выбора страны
 
 
 # Стартовое сообщение для кастомного выбора жанров
