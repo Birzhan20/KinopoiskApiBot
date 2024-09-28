@@ -1,5 +1,5 @@
 from loguru import logger
-from database.data import History
+from database.data import History, User
 from database.save_data import save_data
 from loader import bot
 from telebot.types import Message
@@ -19,10 +19,14 @@ def history(message: Message) -> None:
     logger.info(f"Обработка '/history'")
 
     try:
-        user_id = message.from_user.id
+        username = message.from_user.username
+        user = User.get(User.username == username)
         # Получение последних 10 записей из истории
         recent_history = (
-            History.select().where(History.user_id == user_id).order_by(History.date.desc()).limit(10)
+            History.select()
+            .where(History.user == user)  # Фильтруем по user (ForeignKeyField)
+            .order_by(History.date.desc())  # Сортировка по дате
+            .limit(10)
         )
         history_entries = [
             (
