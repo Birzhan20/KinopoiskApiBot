@@ -7,6 +7,7 @@ from loader import bot
 from database.save_data import save_data
 from telebot import custom_filters
 from states.state_custom import CustomGenreStates
+from config_data.config import KINOPOISK_API_KEY
 
 # Логирование
 logger.add("bot_custom.log", rotation="1 MB", compression="zip")
@@ -53,8 +54,7 @@ def handle_country(message: Message) -> None:
         country = data.get("country")
 
     # Делаем запрос к API
-    kinopoisk_api_key = os.getenv("KINOPOISK_API_KEY")
-    url = f"https://api.kinopoisk.dev/v1.4/movie?premiere.{country}={from_year}-{to_year}&token={kinopoisk_api_key}"
+    url = f"https://api.kinopoisk.dev/v1.4/movie?premiere.{country}={from_year}-{to_year}&token={KINOPOISK_API_KEY}"
 
     try:
         res = requests.get(url)

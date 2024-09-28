@@ -7,6 +7,7 @@ from database.save_data import save_data
 from loader import bot
 from telebot import custom_filters
 from states.state_low import LowGenreStates
+from config_data.config import KINOPOISK_API_KEY
 
 logger.add("bot_low.log", rotation="1 MB", compression="zip")
 
@@ -38,11 +39,11 @@ def get_min_genre(message: Message) -> None:
     Args:
         message (Message): Сообщение от пользователя с выбранным жанром.
     """
-    kinopoisk_api_key = os.getenv("KINOPOISK_API_KEY")
+
     genre = message.text
     logger.info("Запуск запроса по жанру.")
 
-    url = f"https://api.kinopoisk.dev/v1.4/movie?rating.imdb=2-5&genres.name={genre}&&token={kinopoisk_api_key}"
+    url = f"https://api.kinopoisk.dev/v1.4/movie?rating.imdb=2-5&genres.name={genre}&&token={KINOPOISK_API_KEY}"
 
     try:
         res = requests.get(url)

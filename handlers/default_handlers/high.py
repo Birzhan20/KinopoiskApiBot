@@ -6,6 +6,7 @@ from database.save_data import save_data
 from loader import bot
 from telebot import custom_filters
 from states.state_high import HighGenreStates
+from config_data.config import KINOPOISK_API_KEY
 
 
 logger.add("bot_high.log", rotation="1 MB", compression="zip")
@@ -39,12 +40,11 @@ def get_max_genre(message: Message) -> None:
     Args:
         message (Message): Сообщение от пользователя с выбранным жанром.
     """
-    kinopoisk_api_key = os.getenv("KINOPOISK_API_KEY")
     genre = message.text
     logger.info(f"Запуск запроса по жанру {genre}.")
 
     # Формирует URL для запроса к API
-    url = f"https://api.kinopoisk.dev/v1.4/movie?rating.imdb=8-10&genres.name={genre}&token={kinopoisk_api_key}"
+    url = f"https://api.kinopoisk.dev/v1.4/movie?rating.imdb=8-10&genres.name={genre}&token={KINOPOISK_API_KEY}"
 
     try:
         # Выполняет запрос к API
