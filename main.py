@@ -10,3 +10,4 @@ if __name__ == "__main__":
         bot.infinity_polling()
     except Exception as e:
         logger.exception("Ошибка при запуске бота:")
+
